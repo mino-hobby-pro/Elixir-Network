@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embeddr Embed</title>
+    <title>ELIXIR Network</title>
     <link rel="icon" type="image/x-icon" href="/favicon.png">
-    <!-- I hate ads but skids use this to profit so ig I will too -->
     <style>
         * {
             margin: 0;
@@ -16,9 +15,9 @@
         html, body {
             height: 100%;
             overflow: hidden;
-            background: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: #333333;
+            background: #0a0a0c;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #ffffff;
         }
 
         #particles-js {
@@ -28,6 +27,7 @@
             top: 0;
             left: 0;
             z-index: 1;
+            opacity: 0.6;
         }
         
         #embed-frame {
@@ -39,262 +39,111 @@
             z-index: 2;
         }
         
+        /* --- Optimized Elixir Loading Animation --- */
         .loading-container {
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: #333333;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a0c 100%);
             position: relative;
-            overflow: hidden;
-            z-index: 2;
+            z-index: 10;
         }
         
         .loading-content {
             text-align: center;
-            padding: 2rem;
-            background: rgba(248, 249, 250, 0.9);
-            border-radius: 8px;
-            backdrop-filter: blur(5px);
             position: relative;
-            z-index: 3;
+            z-index: 11;
         }
-        
-        /* From Uiverse.io by Pradeepsaranbishnoi */ 
-        .🤚 {
-            --skin-color: #E4C560;
-            --tap-speed: 0.6s;
-            --tap-stagger: 0.1s;
+
+        /* Elixir Orb Animation */
+        .elixir-orb {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 2rem;
             position: relative;
-            width: 80px;
-            height: 60px;
-            margin: 0 auto 1rem;
+            background: linear-gradient(45deg, #6366f1, #a855f7);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            box-shadow: 0 0 50px rgba(168, 85, 247, 0.4);
+            animation: liquid-morph 3s ease-in-out infinite, orb-glow 2s ease-in-out infinite alternate;
         }
 
-        .🤚:before {
-            content: '';
-            display: block;
-            width: 180%;
-            height: 75%;
-            position: absolute;
-            top: 70%;
-            right: 20%;
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 40px 10px;
-            filter: blur(10px);
-            opacity: 0.3;
-        }
-
-        .🌴 {
-            display: block;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: var(--skin-color);
-            border-radius: 10px 40px;
-        }
-
-        .👍 {
-            position: absolute;
-            width: 120%;
-            height: 38px;
-            background-color: var(--skin-color);
-            bottom: -18%;
-            right: 1%;
-            transform-origin: calc(100% - 20px) 20px;
-            transform: rotate(-20deg);
-            border-radius: 30px 20px 20px 10px;
-            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-            border-left: 2px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .👍:after {
-            width: 20%;
-            height: 60%;
-            content: '';
-            background-color: rgba(255, 255, 255, 0.3);
-            position: absolute;
-            bottom: -8%;
-            left: 5px;
-            border-radius: 60% 10% 10% 30%;
-            border-right: 2px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .👉 {
-            position: absolute;
-            width: 80%;
-            height: 35px;
-            background-color: var(--skin-color);
-            bottom: 32%;
-            right: 64%;
-            transform-origin: 100% 20px;
-            animation-duration: calc(var(--tap-speed) * 2);
-            animation-timing-function: ease-in-out;
-            animation-iteration-count: infinite;
-            transform: rotate(10deg);
-        }
-
-        .👉:before {
+        .elixir-orb::after {
             content: '';
             position: absolute;
-            width: 140%;
-            height: 30px;
-            background-color: var(--skin-color);
-            bottom: 8%;
-            right: 65%;
-            transform-origin: calc(100% - 20px) 20px;
-            transform: rotate(-60deg);
-            border-radius: 20px;
-        }
-
-        .👉:nth-child(1) {
-            animation-delay: 0;
-            filter: brightness(70%);
-            animation-name: tap-upper-1;
-        }
-
-        .👉:nth-child(2) {
-            animation-delay: var(--tap-stagger);
-            filter: brightness(80%);
-            animation-name: tap-upper-2;
-        }
-
-        .👉:nth-child(3) {
-            animation-delay: calc(var(--tap-stagger) * 2);
-            filter: brightness(90%);
-            animation-name: tap-upper-3;
-        }
-
-        .👉:nth-child(4) {
-            animation-delay: calc(var(--tap-stagger) * 3);
-            filter: brightness(100%);
-            animation-name: tap-upper-4;
-        }
-
-        @keyframes tap-upper-1 {
-            0%, 50%, 100% {
-                transform: rotate(10deg) scale(0.4);
-            }
-            40% {
-                transform: rotate(50deg) scale(0.4);
-            }
-        }
-
-        @keyframes tap-upper-2 {
-            0%, 50%, 100% {
-                transform: rotate(10deg) scale(0.6);
-            }
-            40% {
-                transform: rotate(50deg) scale(0.6);
-            }
-        }
-
-        @keyframes tap-upper-3 {
-            0%, 50%, 100% {
-                transform: rotate(10deg) scale(0.8);
-            }
-            40% {
-                transform: rotate(50deg) scale(0.8);
-            }
-        }
-
-        @keyframes tap-upper-4 {
-            0%, 50%, 100% {
-                transform: rotate(10deg) scale(1);
-            }
-            40% {
-                transform: rotate(50deg) scale(1);
-            }
-        }
-        
-        .loading-content h2 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: #333333;
-            font-weight: 600;
-        }
-        
-        .loading-content p {
-            color: #666666;
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-bottom: 1rem;
-        }
-        
-        .powered-by {
-            color: #666666;
-            font-size: 0.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .embeddr-logo {
-            max-width: 100px;
-            height: auto;
-            opacity: 0.8;
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(0,0,0,0.1);
-            border-top: 5px solid #333333;
+            top: 15%;
+            left: 15%;
+            width: 30%;
+            height: 30%;
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+            filter: blur(5px);
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        @keyframes liquid-morph {
+            0%, 100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+            33% { border-radius: 70% 30% 50% 50% / 50% 50% 30% 70%; }
+            66% { border-radius: 50% 50% 30% 70% / 70% 30% 50% 50%; }
         }
-        
+
+        @keyframes orb-glow {
+            from { transform: scale(1); box-shadow: 0 0 40px rgba(99, 102, 241, 0.3); }
+            to { transform: scale(1.05); box-shadow: 0 0 70px rgba(168, 85, 247, 0.6); }
+        }
+
+        .brand-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #fff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-text {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+
+        /* Error UI */
         .error-container {
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: #333333;
+            background: #0a0a0c;
             position: relative;
-            z-index: 2;
+            z-index: 20;
         }
         
         .error-content {
             text-align: center;
-            padding: 2rem;
-            max-width: 500px;
-            background: rgba(248, 249, 250, 0.9);
-            border-radius: 8px;
-            backdrop-filter: blur(5px);
-            border: 1px solid #ff6b6b;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            max-width: 450px;
         }
         
         .error-content h1 {
-            font-size: 2rem;
+            font-size: 1.5rem;
             margin-bottom: 1rem;
             color: #ff6b6b;
         }
         
-        .error-content p {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-            color: #666666;
-        }
-        
         .url-example {
-            background: rgba(0, 0, 0, 0.05);
-            padding: 1rem;
+            margin-top: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.8rem;
             border-radius: 8px;
             font-family: monospace;
-            font-size: 0.9rem;
-            word-break: break-all;
-            color: #333333;
+            font-size: 0.8rem;
+            color: #888;
         }
     </style>
 </head>
@@ -303,262 +152,132 @@
     
     <div id="loading-container" class="loading-container">
         <div class="loading-content">
-            <div class="powered-by">Embed powered by</div>
-            <img src="logo.png" alt="Embeddr Logo" class="embeddr-logo">
-            <h2>Initializing UV Proxy...</h2>
-            <p>Setting up secure connection</p>
+            <div class="elixir-orb"></div>
+            <h1 class="brand-name">ELIXIR Network</h1>
+            <p id="loading-status" class="status-text">Connecting to Node...</p>
         </div>
     </div>
     
     <div id="error-container" class="error-container" style="display: none;">
         <div class="error-content">
-            <h1>❌ Error</h1>
-            <p id="error-message">Something went wrong</p>
-            <div class="url-example">
-                Usage: /embed#https://example.com
-            </div>
+            <h1>Connection Failed</h1>
+            <p id="error-message" style="color: rgba(255,255,255,0.7)"></p>
+            <div class="url-example">/embed#https://example.com</div>
         </div>
     </div>
     
     <iframe id="embed-frame" style="display: none;"></iframe>
     
-    <!-- Particles.js -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="https://cdn.kitchen/_vTgzgyvwSp5"></script>
-    <!-- UV Dependencies -->
     <script src="uv/uv.bundle.js"></script>
     <script src="uv/uv.config.js"></script>
     <script type="module">
-        // Initialize particles.js with same config as index.html
-        particlesJS('particles-js', {
-            particles: {
-                number: {
-                    value: 80,
-                    density: {
-                        enable: true,
-                        value_area: 800
-                    }
-                },
-                color: {
-                    value: '#000000'
-                },
-                shape: {
-                    type: 'circle'
-                },
-                opacity: {
-                    value: 0.5,
-                    random: false
-                },
-                size: {
-                    value: 3,
-                    random: true
-                },
-                line_linked: {
-                    enable: true,
-                    distance: 150,
-                    color: '#000000',
-                    opacity: 0.4,
-                    width: 1
-                },
-                move: {
-                    enable: true,
-                    speed: 2,
-                    direction: 'none',
-                    random: false,
-                    straight: false,
-                    out_mode: 'out',
-                    bounce: false
-                }
-            },
-            interactivity: {
-                detect_on: 'canvas',
-                events: {
-                    onhover: {
-                        enable: true,
-                        mode: 'grab'
-                    },
-                    onclick: {
-                        enable: true,
-                        mode: 'push'
-                    },
-                    resize: true
-                },
-                modes: {
-                    grab: {
-                        distance: 140,
-                        line_linked: {
-                            opacity: 1
-                        }
-                    },
-                    push: {
-                        particles_nb: 4
-                    }
-                }
-            },
-            retina_detect: true
-        });
-
         import { registerSW } from "/prxy/register-sw.mjs";
         import * as BareMux from "/prxy/baremux/index.mjs";
+
+        // Particles.js Initialization (Instant)
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 60, density: { enable: true, value_area: 800 } },
+                color: { value: '#a855f7' },
+                shape: { type: 'circle' },
+                opacity: { value: 0.3 },
+                size: { value: 2, random: true },
+                line_linked: { enable: true, distance: 150, color: '#6366f1', opacity: 0.2, width: 1 },
+                move: { enable: true, speed: 1.5 }
+            },
+            interactivity: { events: { onhover: { enable: true, mode: 'grab' } } },
+            retina_detect: true
+        });
 
         const connection = new BareMux.BareMuxConnection("/prxy/baremux/worker.js");
 
         function search(input, template = "https://html.duckduckgo.com/html?t=h_&q=%s") {
-            try {
-                return new URL(input).toString();
-            } catch (err) {}
-
+            try { return new URL(input).toString(); } catch (err) {}
             try {
                 const url = new URL(`http://${input}`);
                 if (url.hostname.includes(".")) return url.toString();
             } catch (err) {}
-
             return template.replace("%s", encodeURIComponent(input));
         }
 
         async function getUV(input) {
-            try {
-                await registerSW();
-                console.log("Service Worker registered successfully");
-            } catch (err) {
-                console.error("SW failed to register:", err);
-                throw err;
-            }
-
+            await registerSW();
             let url = search(input);
-
             let wispUrl = "wss://wisp.rhw.one/";
             if ((await connection.getTransport()) !== "/prxy/epoxy/index.mjs") {
-                await connection.setTransport("/prxy/epoxy/index.mjs", [
-                    { wisp: wispUrl },
-                ]);
+                await connection.setTransport("/prxy/epoxy/index.mjs", [{ wisp: wispUrl }]);
             }
-
-            let viewUrl = __uv$config.prefix + __uv$config.encodeUrl(url);
-            return viewUrl;
+            return __uv$config.prefix + __uv$config.encodeUrl(url);
         }
 
         function getUrlFromFragment() {
-    const fragment = window.location.hash.substring(1);
-    if (!fragment) return null;
-
-    try {
-        // Decode if it's URL-encoded
-        const decoded = decodeURIComponent(fragment);
-        return decoded;
-    } catch (err) {
-        // Fallback if decoding fails
-        console.warn("Failed to decode fragment, using raw value:", err);
-        return fragment;
-    }
-}
-
-function isValidUrl(string) {
-    if (!string) return false;
-
-    // Decode before validation
-    try {
-        string = decodeURIComponent(string);
-    } catch (_) {}
-
-    try {
-        const url = new URL(string);
-        return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch (_) {
-        // Try adding http:// if missing
-        try {
-            const url = new URL(`http://${string}`);
-            return url.hostname.includes('.');
-        } catch (_) {
-            return false;
+            const fragment = window.location.hash.substring(1);
+            if (!fragment) return null;
+            try { return decodeURIComponent(fragment); } catch (err) { return fragment; }
         }
-    }
-}
 
+        function isValidUrl(string) {
+            if (!string) return false;
+            try {
+                const url = new URL(string.includes('://') ? string : `http://${string}`);
+                return url.hostname.includes('.');
+            } catch (_) { return false; }
+        }
 
         function showError(message) {
-            const loadingContainer = document.getElementById('loading-container');
-            const errorContainer = document.getElementById('error-container');
-            const errorMessage = document.getElementById('error-message');
-            
-            loadingContainer.style.display = 'none';
-            errorMessage.textContent = message;
-            errorContainer.style.display = 'flex';
-        }
-
-        function showLoading(message = "Initializing UV Proxy...") {
-            const loadingContainer = document.getElementById('loading-container');
-            const loadingText = loadingContainer.querySelector('h2');
-            loadingText.textContent = message;
-            loadingContainer.style.display = 'flex';
+            document.getElementById('loading-container').style.display = 'none';
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-container').style.display = 'flex';
         }
 
         async function embedUrl() {
             const url = getUrlFromFragment();
             const iframe = document.getElementById('embed-frame');
             const loadingContainer = document.getElementById('loading-container');
-            const errorContainer = document.getElementById('error-container');
+            const statusText = document.getElementById('loading-status');
 
-            // Reset displays
-            iframe.style.display = 'none';
-            errorContainer.style.display = 'none';
-            loadingContainer.style.display = 'flex';
-
-            if (!url) {
-                showError("No URL provided in fragment. Please add a URL after the # symbol.");
-                return;
-            }
-
-            if (!isValidUrl(url)) {
-                showError(`Invalid URL: "${url}". Please provide a valid HTTP or HTTPS URL.`);
-                return;
-            }
+            if (!url) return showError("URL fragment missing.");
+            if (!isValidUrl(url)) return showError(`Invalid destination: ${url}`);
 
             try {
-                showLoading("Connecting to proxy...");
-                
-                // Get the proxied URL through UV
+                statusText.textContent = "Infusing Elixir Proxy...";
                 const proxiedUrl = await getUV(url);
                 
-                showLoading("Loading content...");
-                
-                // Set up iframe load handler
+                statusText.textContent = "Flowing to destination...";
                 iframe.onload = () => {
                     loadingContainer.style.display = 'none';
                     iframe.style.display = 'block';
-                    document.title = `Embeddr Embed: ${url}`;
+                    document.title = `ELIXIR | ${url}`;
                 };
 
-                iframe.onerror = () => {
-                    showError(`Failed to load: ${url}. The target site may block embedding or be unreachable.`);
-                };
-
-                // Set the iframe source to the proxied URL
+                iframe.onerror = () => showError("The sanctuary refused the connection.");
                 iframe.src = proxiedUrl;
-
             } catch (error) {
-                console.error("Error setting up proxy:", error);
-                showError(`Proxy error: ${error.message || 'Failed to initialize proxy connection'}`);
+                showError(error.message || "Proxy infusion failed.");
             }
         }
 
-        // Listen for hash changes
+        // --- Optimization: Remove unnecessary delays ---
         window.addEventListener('hashchange', embedUrl);
 
-        // Initial load with a small delay to ensure dependencies are loaded
-        window.addEventListener('load', () => {
-            setTimeout(embedUrl, 100);
-        });
+        // Immediate Execution Logic
+        const init = () => {
+            if (typeof __uv$config !== 'undefined') {
+                embedUrl();
+            } else {
+                // If config is slow, poll aggressively (every 10ms) but only until loaded
+                const check = setInterval(() => {
+                    if (typeof __uv$config !== 'undefined') {
+                        clearInterval(check);
+                        embedUrl();
+                    }
+                }, 10);
+            }
+        };
 
-        // If UV config is not loaded yet, wait for it
-        if (typeof __uv$config === 'undefined') {
-            const checkConfig = setInterval(() => {
-                if (typeof __uv$config !== 'undefined') {
-                    clearInterval(checkConfig);
-                    embedUrl();
-                }
-            }, 50);
-        }
+        if (document.readyState === 'complete') init();
+        else window.addEventListener('load', init);
     </script>
 </body>
-</html> 
+</html>
