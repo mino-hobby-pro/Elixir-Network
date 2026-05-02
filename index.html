@@ -1,404 +1,527 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embeddr v2</title>
-    
+    <title>Elixir-Network | Ultimate Proxy Browser</title>
     <link rel="icon" type="image/x-icon" href="/favicon.png">
+    <!-- フォントとアイコンの読み込み -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* CSS Variables for Elixir Theme */
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-panel: rgba(20, 20, 30, 0.7);
+            --bg-tab: rgba(40, 40, 55, 0.5);
+            --bg-tab-active: rgba(30, 30, 45, 0.95);
+            --elixir-primary: #8b5cf6;
+            --elixir-secondary: #06b6d4;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: rgba(139, 92, 246, 0.2);
+            --glass-blur: blur(12px);
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            min-height: 100vh;
-            background: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: #333333;
-            line-height: 1.6;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         #particles-js {
             position: fixed;
             width: 100%;
             height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 1;
+            top: 0; left: 0;
+            z-index: 0;
+            pointer-events: none;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
+        /* --- Browser UI Container --- */
+        .browser-container {
             position: relative;
-            z-index: 2;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(10,10,15,0.9) 0%, rgba(10,10,15,0.4) 100%);
+            backdrop-filter: var(--glass-blur);
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 4rem;
+        /* --- Title & Branding --- */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .logo {
-            max-width: 300px;
-            height: auto;
-        }
-
-        .main-content {
-            background: rgba(248, 249, 250, 0.9);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(5px);
-        }
-
-        .form-section {
-            margin-bottom: 2rem;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 1rem;
+        .brand-logo {
+            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--elixir-primary), var(--elixir-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: pulse-glow 3s infinite alternate;
         }
 
-        .url-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-            background: rgba(255, 255, 255, 0.9);
+        /* --- Tab Bar --- */
+        .tab-bar {
+            display: flex;
+            background: rgba(15, 15, 20, 0.8);
+            padding: 8px 8px 0 8px;
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
         }
+        .tab-bar::-webkit-scrollbar { display: none; }
 
-        .url-input:focus {
-            outline: none;
-            border-color: #666;
-        }
-
-        .generate-btn {
-            width: 100%;
-            padding: 0.75rem;
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
+        .tab {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 150px;
+            max-width: 240px;
+            padding: 8px 12px;
+            margin-right: 4px;
+            background: var(--bg-tab);
+            border-radius: 8px 8px 0 0;
             cursor: pointer;
-        }
-
-        .generate-btn:hover {
-            background: #444;
-        }
-
-        .result-section {
-            display: none;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #ddd;
-        }
-
-        .result-section.show {
-            display: block;
-        }
-
-        .result-group {
+            border: 1px solid transparent;
+            border-bottom: none;
+            transition: all 0.2s ease;
             position: relative;
-            margin-bottom: 2rem;
         }
 
-        .result-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.875rem;
-            background: rgba(255, 255, 255, 0.9);
+        .tab:hover { background: rgba(60, 60, 80, 0.6); }
+
+        .tab.active {
+            background: var(--bg-tab-active);
+            border-color: var(--border-color);
+            box-shadow: 0 -4px 15px rgba(139, 92, 246, 0.1);
         }
 
-        .copy-btn {
+        .tab.active::after {
+            content: '';
             position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            padding: 0.5rem 1rem;
-            background: #333;
-            color: white;
+            bottom: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, var(--elixir-primary), var(--elixir-secondary));
+        }
+
+        .tab-title {
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-close {
+            background: none;
             border: none;
-            border-radius: 4px;
+            color: var(--text-muted);
             cursor: pointer;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
         }
 
-        .copy-btn:hover {
-            background: #444;
+        .tab-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ff4d4f;
         }
 
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-            background: rgba(248, 249, 250, 0.9);
-            border-radius: 8px;
-            backdrop-filter: blur(5px);
+        .new-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 12px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            transition: 0.2s;
+        }
+        .new-tab-btn:hover { color: var(--elixir-primary); background: rgba(255,255,255,0.05); }
+
+        /* --- Navigation Bar --- */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            background: var(--bg-tab-active);
+            border-bottom: 1px solid var(--border-color);
+            gap: 12px;
         }
 
-        .notification {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            padding: 0.75rem 1rem;
-            background: #333;
-            color: white;
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 1.1rem;
+            width: 32px; height: 32px;
             border-radius: 4px;
+            transition: 0.2s;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.1); }
+
+        .omnibox-container {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .omnibox {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .omnibox:focus {
+            background: rgba(0, 0, 0, 0.6);
+            border-color: var(--elixir-primary);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+        }
+
+        .omnibox-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+        }
+
+        /* --- Viewport (iFrames) --- */
+        .viewport {
+            flex-grow: 1;
+            position: relative;
+            background: #ffffff; /* Webページの背景用に白 */
+        }
+
+        .viewport iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: none;
+            display: none; /* デフォルトは非表示 */
+        }
+
+        .viewport iframe.active {
+            display: block; /* アクティブなタブのiframeのみ表示 */
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.2); }
+            100% { text-shadow: 0 0 20px rgba(6, 182, 212, 0.6); }
+        }
+
+        /* Loader */
+        .loader-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            color: var(--elixir-primary);
+            font-size: 2rem;
             display: none;
-            z-index: 1000;
         }
-
-        .notification.show {
-            display: block;
-        }
-
-        @media (max-width: 640px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .main-content {
-                padding: 1.5rem;
-            }
-        }
+        .loader-overlay.active { display: flex; }
     </style>
 </head>
 <body>
+
+    <!-- Particle Background -->
     <div id="particles-js"></div>
-    
-    <div class="container">
-        <div class="header">
-            <img src="logo.png" alt="Embeddr v2 Logo" class="logo">
-        </div>
 
-        <div class="main-content">
-            <div class="form-section">
-                <label for="url-input" class="form-label">Target URL</label>
-                <input 
-                    type="text" 
-                    id="url-input" 
-                    class="url-input" 
-                    placeholder="Enter domain or full URL (e.g., example.com)"
-                    spellcheck="false"
-                    autocomplete="off"
-                >
-                <button id="generate-btn" class="generate-btn">
-                    Generate Embed URL
-                </button>
-            </div>
-
-            <div id="result-section" class="result-section">
-                <label class="form-label">Generated Embed URL</label>
-                <div class="result-group">
-                    <input 
-                        type="text" 
-                        id="embed-url" 
-                        class="result-input" 
-                        readonly
-                        placeholder="Your embed URL will appear here..."
-                    >
-                    <button id="copy-btn" class="copy-btn">Copy</button>
-                </div>
+    <div class="browser-container">
+        <!-- Brand Header -->
+        <div class="brand-header">
+            <div class="brand-logo">
+                <i class="fa-solid fa-flask"></i> Elixir-Network
             </div>
         </div>
 
-        <div class="footer">
-            <p>Powered by Ultraviolet proxy technology | Made by <a href="https://rhw.one">RHW</a> | <a href="https://github.com/LupineVault/embeddr">Github</a></p>
+        <!-- Tab Bar -->
+        <div class="tab-bar" id="tab-bar">
+            <!-- Tabs injected by JS -->
+            <button class="new-tab-btn" id="new-tab-btn" title="New Tab">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </div>
+
+        <!-- Navigation Bar -->
+        <div class="nav-bar">
+            <button class="nav-btn" id="btn-back" title="Go Back"><i class="fa-solid fa-arrow-left"></i></button>
+            <button class="nav-btn" id="btn-forward" title="Go Forward"><i class="fa-solid fa-arrow-right"></i></button>
+            <button class="nav-btn" id="btn-reload" title="Reload"><i class="fa-solid fa-rotate-right"></i></button>
+            
+            <div class="omnibox-container">
+                <i class="fa-solid fa-magnifying-glass omnibox-icon"></i>
+                <input type="text" class="omnibox" id="omnibox" placeholder="Search Startpage or type a URL" spellcheck="false" autocomplete="off">
+            </div>
+        </div>
+
+        <!-- Viewport -->
+        <div class="viewport" id="viewport">
+            <!-- Loader -->
+            <div class="loader-overlay" id="loader">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+            </div>
+            <!-- Iframes injected by JS -->
         </div>
     </div>
 
-    <div id="notification" class="notification">
-        URL copied to clipboard
-    </div>
-
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="https://cdn.kitchen/_vTgzgyvwSp5"></script>
     <script>
-        // Initialize particles.js
+        // --- 1. Background Particles (Cyber-Elixir Style) ---
         particlesJS('particles-js', {
             particles: {
-                number: {
-                    value: 80,
-                    density: {
-                        enable: true,
-                        value_area: 800
-                    }
-                },
-                color: {
-                    value: '#000000'
-                },
-                shape: {
-                    type: 'circle'
-                },
-                opacity: {
-                    value: 0.5,
-                    random: false
-                },
-                size: {
-                    value: 3,
-                    random: true
-                },
-                line_linked: {
-                    enable: true,
-                    distance: 150,
-                    color: '#000000',
-                    opacity: 0.4,
-                    width: 1
-                },
-                move: {
-                    enable: true,
-                    speed: 2,
-                    direction: 'none',
-                    random: false,
-                    straight: false,
-                    out_mode: 'out',
-                    bounce: false
-                }
+                number: { value: 50, density: { enable: true, value_area: 800 } },
+                color: { value: ["#8b5cf6", "#06b6d4"] },
+                shape: { type: "circle" },
+                opacity: { value: 0.3, random: true },
+                size: { value: 3, random: true },
+                line_linked: { enable: true, distance: 150, color: "#8b5cf6", opacity: 0.2, width: 1 },
+                move: { enable: true, speed: 1.5, direction: "none", random: true, out_mode: "out" }
             },
             interactivity: {
-                detect_on: 'canvas',
-                events: {
-                    onhover: {
-                        enable: true,
-                        mode: 'grab'
-                    },
-                    onclick: {
-                        enable: true,
-                        mode: 'push'
-                    },
-                    resize: true
-                },
-                modes: {
-                    grab: {
-                        distance: 140,
-                        line_linked: {
-                            opacity: 1
-                        }
-                    },
-                    push: {
-                        particles_nb: 4
-                    }
-                }
+                detect_on: "canvas",
+                events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" } },
+                modes: { grab: { distance: 140, line_linked: { opacity: 0.8 } }, push: { particles_nb: 3 } }
             },
             retina_detect: true
         });
 
-        const urlInput = document.getElementById('url-input');
-        const generateBtn = document.getElementById('generate-btn');
-        const resultSection = document.getElementById('result-section');
-        const embedUrlInput = document.getElementById('embed-url');
-        const copyBtn = document.getElementById('copy-btn');
-        const notification = document.getElementById('notification');
+        // --- 2. Browser State Management ---
+        let tabs = [];
+        let activeTabId = null;
+        let tabCounter = 0;
 
-        function normalizeUrl(input) {
-            if (!input.trim()) return '';
-            
-            let url = input.trim();
-            
-            url = url.replace(/^https?:\/\//, '');
-            url = 'https://' + url;
-            
-            return url;
+        const tabBar = document.getElementById('tab-bar');
+        const newTabBtn = document.getElementById('new-tab-btn');
+        const viewport = document.getElementById('viewport');
+        const omnibox = document.getElementById('omnibox');
+        const loader = document.getElementById('loader');
+
+        // --- 3. Core Logic ---
+
+        // 入力値の判定とプロキシURLの生成
+        function processInput(input) {
+            let targetUrl = input.trim();
+            if (!targetUrl) return null;
+
+            // URLかキーワード検索か判定 (スペースが含まれているか、ドットがない場合は検索とみなす)
+            const isUrl = /^(https?:\/\/)?([\w.-]+)\.([a-z]{2,})(:\d{1,5})?(\/.*)?$/i.test(targetUrl) && !targetUrl.includes(' ');
+
+            if (!isUrl) {
+                // キーワードの場合はStartpageの検索URLを生成
+                targetUrl = `https://www.startpage.com/sp/search?query=${encodeURIComponent(targetUrl)}`;
+            } else {
+                // URLの場合はプロトコルを補完
+                if (!/^https?:\/\//i.test(targetUrl)) {
+                    targetUrl = 'https://' + targetUrl;
+                }
+            }
+            return targetUrl;
         }
 
-        function generateEmbedUrl(targetUrl) {
-            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
-            return `${baseUrl}embed#${targetUrl}`;
+        // 404を防ぐためのプロキシURL生成機能（相対パスベース）
+        function getProxyUrl(rawUrl) {
+            // 現在のディレクトリパスを取得（例: /abyss/ や /static/ などの配下で安全に動作させる）
+            const currentPath = window.location.pathname;
+            const baseDir = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+            
+            // 例: UV(Ultraviolet)を使用する場合の設定箇所
+            // ここで環境に合わせてプレフィックスとエンコードを調整します
+            // return baseDir + 'uv/service/' + __uv$config.encodeUrl(rawUrl);
+            
+            // （現状はダミーとして、Embeddr v2ロジックをシミュレートする形式）
+            // 実際のプロキシ環境が動くエンドポイントに置き換えてください
+            return baseDir + 'embed#' + encodeURIComponent(rawUrl); 
         }
 
-        function showNotification(message, isError = false) {
-            notification.textContent = message;
-            notification.className = `notification ${isError ? 'error' : ''}`;
-            notification.classList.add('show');
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+        // --- 4. Tab Operations ---
+
+        function createTab(url = '', title = 'New Tab') {
+            const tabId = `tab-${tabCounter++}`;
+            const targetUrl = url ? processInput(url) : '';
+            const proxyUrl = targetUrl ? getProxyUrl(targetUrl) : '';
+
+            // 1. Tab UI Element 生成
+            const tabEl = document.createElement('div');
+            tabEl.className = 'tab';
+            tabEl.id = tabId;
+            tabEl.innerHTML = `
+                <div class="tab-title">
+                    <i class="fa-solid ${url ? 'fa-globe' : 'fa-flask'}"></i>
+                    <span>${title}</span>
+                </div>
+                <button class="tab-close"><i class="fa-solid fa-xmark"></i></button>
+            `;
+
+            // イベントリスナー（タブクリックで切り替え）
+            tabEl.addEventListener('click', (e) => {
+                if (!e.target.closest('.tab-close')) switchTab(tabId);
+            });
+
+            // イベントリスナー（閉じるボタン）
+            tabEl.querySelector('.tab-close').addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeTab(tabId);
+            });
+
+            tabBar.insertBefore(tabEl, newTabBtn);
+
+            // 2. Iframe Element 生成
+            const iframe = document.createElement('iframe');
+            iframe.id = `iframe-${tabId}`;
+            // 実際はproxyUrlをセットします。ここではデモ用に空白の場合はsrcを指定しません。
+            if (proxyUrl) iframe.src = proxyUrl; 
+            
+            // 読み込み状態のハンドリング
+            iframe.addEventListener('load', () => {
+                if(iframe.src && iframe.src !== 'about:blank' && activeTabId === tabId) {
+                    loader.classList.remove('active');
+                    // 実際にはiframe内部のtitleを取得したいところですが、クロスオリジン制約があるため、
+                    // URLをタイトルとして表示するか、バックエンドのメタデータを参照する必要があります。
+                }
+            });
+
+            viewport.appendChild(iframe);
+
+            // 3. 状態保存
+            tabs.push({ id: tabId, url: targetUrl, title: title, el: tabEl, iframe: iframe });
+            switchTab(tabId);
         }
 
-        function validateUrl(url) {
-            try {
-                new URL(url);
-                return true;
-            } catch {
-                return false;
+        function switchTab(id) {
+            activeTabId = id;
+            tabs.forEach(tab => {
+                if (tab.id === id) {
+                    tab.el.classList.add('active');
+                    tab.iframe.classList.add('active');
+                    omnibox.value = tab.url || '';
+                    if (tab.iframe.src && tab.iframe.src !== 'about:blank' && !tab.iframe.contentWindow.length) {
+                         // まだロードされていない場合のフォールバック
+                    }
+                } else {
+                    tab.el.classList.remove('active');
+                    tab.iframe.classList.remove('active');
+                }
+            });
+            omnibox.focus();
+        }
+
+        function closeTab(id) {
+            const index = tabs.findIndex(t => t.id === id);
+            if (index === -1) return;
+
+            const tab = tabs[index];
+            tab.el.remove();
+            tab.iframe.remove();
+            tabs.splice(index, 1);
+
+            if (tabs.length === 0) {
+                createTab(); // 全て閉じたら新しいタブを開く
+            } else if (activeTabId === id) {
+                // 閉じたタブがアクティブだった場合、右隣か左隣のタブをアクティブにする
+                const nextIndex = index === tabs.length ? index - 1 : index;
+                switchTab(tabs[nextIndex].id);
             }
         }
 
-        generateBtn.addEventListener('click', () => {
-            const inputUrl = urlInput.value.trim();
+        function navigateCurrentTab(input) {
+            if (!activeTabId || !input.trim()) return;
+            const targetUrl = processInput(input);
+            const proxyUrl = getProxyUrl(targetUrl);
             
-            if (!inputUrl) {
-                showNotification('Please enter a URL', true);
-                urlInput.focus();
-                return;
-            }
-
-            const normalizedUrl = normalizeUrl(inputUrl);
-            
-            if (!validateUrl(normalizedUrl)) {
-                showNotification('Please enter a valid URL', true);
-                urlInput.focus();
-                return;
-            }
-
-            const embedUrl = generateEmbedUrl(normalizedUrl);
-            
-            embedUrlInput.value = embedUrl;
-            resultSection.classList.add('show');
-            
-            showNotification('Embed URL generated successfully');
-        });
-
-        copyBtn.addEventListener('click', async () => {
-            const embedUrl = embedUrlInput.value;
-            
-            if (!embedUrl) {
-                showNotification('No URL to copy', true);
-                return;
-            }
-
-            try {
-                await navigator.clipboard.writeText(embedUrl);
-                copyBtn.textContent = 'Copied!';
-                copyBtn.classList.add('copied');
-                showNotification('URL copied to clipboard');
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (tab) {
+                loader.classList.add('active');
+                tab.url = targetUrl;
+                // タブのタイトルを更新（ドメイン名などを抽出して表示）
+                let displayTitle = targetUrl;
+                try {
+                    displayTitle = new URL(targetUrl).hostname.replace('www.', '');
+                } catch(e) { displayTitle = "Search Results"; }
                 
-                setTimeout(() => {
-                    copyBtn.textContent = 'Copy';
-                    copyBtn.classList.remove('copied');
-                }, 2000);
-            } catch (err) {
-                embedUrlInput.select();
-                document.execCommand('copy');
-                showNotification('URL copied to clipboard');
+                tab.el.querySelector('.tab-title span').textContent = displayTitle;
+                tab.el.querySelector('.tab-title i').className = 'fa-solid fa-globe';
+                tab.iframe.src = proxyUrl;
+                omnibox.value = targetUrl; // Omniboxの表示も更新
             }
-        });
+        }
 
-        urlInput.addEventListener('keypress', (e) => {
+        // --- 5. Event Listeners ---
+        
+        newTabBtn.addEventListener('click', () => createTab());
+
+        omnibox.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                generateBtn.click();
+                navigateCurrentTab(omnibox.value);
             }
         });
 
-        embedUrlInput.addEventListener('click', () => {
-            embedUrlInput.select();
+        // 戻る・進む・リロードボタンの制御
+        document.getElementById('btn-reload').addEventListener('click', () => {
+            if (!activeTabId) return;
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (tab && tab.iframe.src) {
+                loader.classList.add('active');
+                tab.iframe.src = tab.iframe.src; // iframeのリロード
+            }
         });
 
+        document.getElementById('btn-back').addEventListener('click', () => {
+            if (!activeTabId) return;
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (tab && tab.iframe.contentWindow) {
+                try { tab.iframe.contentWindow.history.back(); } catch(e) { /* クロスオリジン対策 */ }
+            }
+        });
 
-        urlInput.focus();
+        document.getElementById('btn-forward').addEventListener('click', () => {
+            if (!activeTabId) return;
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (tab && tab.iframe.contentWindow) {
+                try { tab.iframe.contentWindow.history.forward(); } catch(e) { /* クロスオリジン対策 */ }
+            }
+        });
+
+        // 初期化：最初のタブを開く
+        window.addEventListener('DOMContentLoaded', () => {
+            createTab();
+        });
+
     </script>
 </body>
 </html>
