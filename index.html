@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elixir Network | Search & Proxy</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Zen+Dot&display=swap" rel="stylesheet">
+    <title>Elixir-Network</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-black: #050507;
-            --elixir-purple: #8b5cf6;
-            --elixir-cyan: #06b6d4;
+            --bg-dark: #050508;
+            --elixir-primary: #8b5cf6;
+            --elixir-secondary: #06b6d4;
+            --tab-active: #1a1a25;
+            --tab-inactive: #0f0f15;
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
             --glass: rgba(255, 255, 255, 0.03);
             --border: rgba(139, 92, 246, 0.2);
-            --text-main: #e5e7eb;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background-color: var(--bg-black);
+            background-color: var(--bg-dark);
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
             height: 100vh;
@@ -29,461 +33,533 @@
             flex-direction: column;
         }
 
-        /* --- Loading Intro Animation --- */
-        #intro-overlay {
+        /* --- Loading Animation --- */
+        #splash-screen {
             position: fixed;
             inset: 0;
-            background: var(--bg-black);
-            z-index: 1000;
+            background: var(--bg-dark);
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 1s ease, visibility 1s;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .intro-logo {
-            font-family: 'Zen Dot', cursive;
-            font-size: 4rem;
-            background: linear-gradient(to right, var(--elixir-purple), var(--elixir-cyan));
+        .splash-logo {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            opacity: 0;
-            transform: scale(0.8);
-            animation: intro-reveal 2.5s forwards;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.4));
+            animation: logo-emerge 1.5s ease-out forwards;
         }
 
-        .intro-loader {
+        .loader-bar {
             width: 200px;
             height: 2px;
-            background: rgba(255,255,255,0.1);
-            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
+            border-radius: 4px;
         }
 
-        .intro-loader::after {
-            content: '';
+        .loader-progress {
             position: absolute;
-            width: 40%;
             height: 100%;
-            background: var(--elixir-cyan);
-            animation: loader-slide 2s infinite ease-in-out;
+            width: 0;
+            background: var(--accent-gradient);
+            animation: load-progress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
-        @keyframes intro-reveal {
-            0% { opacity: 0; transform: scale(0.8) blur(10px); }
-            50% { opacity: 1; transform: scale(1) blur(0px); text-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
-            100% { opacity: 0; transform: scale(1.1) blur(5px); }
+        @keyframes logo-emerge {
+            0% { opacity: 0; transform: scale(0.9) translateY(20px); filter: blur(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
 
-        @keyframes loader-slide {
-            0% { left: -100%; }
-            100% { left: 100%; }
+        @keyframes load-progress {
+            0% { width: 0; }
+            100% { width: 100%; }
         }
 
         /* --- Background --- */
-        #canvas-container {
+        #particles-js {
             position: fixed;
             inset: 0;
-            z-index: -1;
-            background: radial-gradient(circle at 50% 50%, #110e1a 0%, #050507 100%);
-        }
-
-        /* --- Start Page Layout --- */
-        .start-page {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 10;
-        }
-
-        .start-page.minimized {
-            transform: translateY(-120%);
-            opacity: 0;
+            z-index: 1;
             pointer-events: none;
         }
 
-        .brand-huge {
-            font-family: 'Zen Dot', cursive;
-            font-size: clamp(3rem, 10vw, 6rem);
-            background: linear-gradient(135deg, var(--elixir-purple), var(--elixir-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 40px;
-            letter-spacing: -2px;
-            filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.3));
-            animation: float 6s infinite ease-in-out;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        /* --- Google Style Search Bar --- */
-        .search-container {
-            width: 100%;
-            max-width: 650px;
-            padding: 0 20px;
-        }
-
-        .search-wrapper {
+        /* --- Browser UI Layout --- */
+        .browser-root {
             position: relative;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 30px;
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .search-wrapper:hover, .search-wrapper:focus-within {
-            background: rgba(255, 255, 255, 0.07);
-            border-color: var(--elixir-cyan);
-            box-shadow: 0 0 25px rgba(6, 182, 212, 0.2);
-        }
-
-        .search-wrapper i {
-            color: var(--text-muted);
-            margin-right: 15px;
-            font-size: 1.2rem;
-        }
-
-        .main-input {
-            background: none;
-            border: none;
-            outline: none;
-            color: white;
-            width: 100%;
-            font-size: 1.1rem;
-            font-weight: 400;
-        }
-
-        /* --- Browser UI (Hidden by default) --- */
-        .browser-ui {
-            position: fixed;
-            inset: 0;
+            z-index: 10;
             display: flex;
             flex-direction: column;
-            transform: translateY(100%);
-            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 20;
-            background: var(--bg-black);
+            height: 100vh;
         }
 
-        .browser-ui.active {
-            transform: translateY(0);
-        }
-
-        .top-bar {
-            background: rgba(10, 10, 15, 0.95);
-            border-bottom: 1px solid var(--border);
+        /* --- Tab System (Google Style) --- */
+        .tab-strip {
             display: flex;
-            align-items: center;
-            padding: 8px 16px;
-            gap: 15px;
-        }
-
-        .mini-logo {
-            font-family: 'Zen Dot', cursive;
-            font-size: 1.1rem;
-            background: linear-gradient(to right, var(--elixir-purple), var(--elixir-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            cursor: pointer;
-        }
-
-        /* --- Tab System --- */
-        .tabs-wrapper {
-            display: flex;
-            overflow-x: auto;
-            flex: 1;
-            scrollbar-width: none;
-            gap: 5px;
+            align-items: flex-end;
+            background: #000;
+            padding: 8px 12px 0;
+            height: 44px;
+            gap: 4px;
         }
 
         .tab {
+            position: relative;
+            height: 34px;
             min-width: 140px;
             max-width: 200px;
-            height: 34px;
-            background: rgba(255,255,255,0.05);
+            background: var(--tab-inactive);
             border-radius: 8px 8px 0 0;
             display: flex;
             align-items: center;
             padding: 0 12px;
-            font-size: 0.85rem;
             cursor: pointer;
-            border: 1px solid transparent;
-            position: relative;
+            transition: background 0.2s, width 0.3s;
+            user-select: none;
         }
 
         .tab.active {
-            background: var(--bg-black);
-            border: 1px solid var(--border);
-            border-bottom: none;
+            background: var(--tab-active);
+            z-index: 2;
         }
 
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px; left: 0; width: 100%; height: 2px;
-            background: var(--bg-black);
-            z-index: 5;
+        .tab-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+            margin-right: 8px;
         }
+
+        .tab.active .tab-title { color: var(--text-main); }
 
         .tab-close {
-            margin-left: auto;
-            opacity: 0.5;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
             transition: 0.2s;
         }
-        .tab-close:hover { opacity: 1; color: #ff4d4f; }
 
-        /* --- Viewport --- */
-        .content-area {
-            flex: 1;
-            position: relative;
-            background: white;
+        .tab-close:hover { background: rgba(255,255,255,0.1); color: #ff5f57; }
+
+        .new-tab-btn {
+            width: 28px;
+            height: 28px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.2s;
         }
 
-        iframe {
+        .new-tab-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
+
+        /* --- URL Bar / Controls --- */
+        .toolbar {
+            background: var(--tab-active);
+            height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .nav-icons { display: flex; gap: 4px; }
+        .nav-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
+
+        .address-bar-container {
+            flex-grow: 1;
+            max-width: 900px;
+            position: relative;
+        }
+
+        .address-bar {
+            width: 100%;
+            height: 32px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 0 40px;
+            color: var(--text-main);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .address-bar:focus { border-color: var(--elixir-primary); background: rgba(0,0,0,0.6); }
+
+        .addr-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-muted); }
+
+        /* --- Viewport & Start Page --- */
+        .content-area {
+            flex-grow: 1;
+            position: relative;
+            background: var(--bg-dark);
+        }
+
+        .viewport-frame {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
             border: none;
             display: none;
+            background: white;
         }
 
-        iframe.active { display: block; }
+        .viewport-frame.active { display: block; }
 
-        /* --- Control Buttons --- */
-        .nav-controls { display: flex; gap: 8px; }
-        .control-btn {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+        /* --- The Ultimate Start Page --- */
+        .start-page {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            padding-bottom: 10vh;
+        }
+
+        .hero-logo {
+            font-size: 5rem;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 40px;
+            filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.3));
+            user-select: none;
+            cursor: default;
+        }
+
+        .search-box-wrapper {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .search-box-wrapper:focus-within { transform: scale(1.02); }
+
+        .search-box {
+            width: 100%;
+            height: 54px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 0 60px;
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: all 0.3s;
+        }
+
+        .search-box:hover, .search-box:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--elixir-primary);
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
+        }
+
+        .search-icon-main { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px; }
+        .search-shortcut { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px; }
+
+        .quick-links {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .link-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
             cursor: pointer;
             transition: 0.2s;
+            width: 80px;
         }
-        .control-btn:hover { background: rgba(255,255,255,0.1); }
 
+        .link-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: 0.3s;
+        }
+
+        .link-item:hover .link-icon { background: var(--elixir-primary); transform: translateY(-5px); color: white; }
+        .link-item span { font-size: 12px; color: var(--text-muted); }
     </style>
 </head>
 <body>
 
-    <!-- Intro Animation -->
-    <div id="intro-overlay">
-        <div class="intro-logo">ELIXIR</div>
-        <div class="intro-loader"></div>
-    </div>
-
-    <!-- Animated Background -->
-    <div id="canvas-container">
-        <div id="particles-js"></div>
-    </div>
-
-    <!-- Start Page -->
-    <main class="start-page" id="start-page">
-        <div class="brand-huge">ELIXIR</div>
-        <div class="search-container">
-            <div class="search-wrapper">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" class="main-input" id="search-input" placeholder="Search the web or enter URL..." autocomplete="off">
-            </div>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="splash-logo">ELIXIR</div>
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
         </div>
-    </main>
+    </div>
 
-    <!-- Browser Interface -->
-    <div class="browser-ui" id="browser-ui">
-        <div class="top-bar">
-            <div class="mini-logo" onclick="goHome()">ELIXIR</div>
-            
-            <div class="nav-controls">
-                <button class="control-btn" onclick="back()"><i class="fa-solid fa-chevron-left"></i></button>
-                <button class="control-btn" onclick="forward()"><i class="fa-solid fa-chevron-right"></i></button>
-                <button class="control-btn" onclick="reload()"><i class="fa-solid fa-rotate-right"></i></button>
-            </div>
+    <!-- Background Particles -->
+    <div id="particles-js"></div>
 
-            <div class="tabs-wrapper" id="tabs-container">
-                <!-- Tabs injected here -->
-            </div>
-
-            <button class="control-btn" onclick="createNewTab()" style="margin-right: 10px;">
+    <div class="browser-root">
+        <!-- Tab Strip -->
+        <div class="tab-strip" id="tab-strip">
+            <!-- Tabs injected here -->
+            <div class="new-tab-btn" onclick="createNewTab()">
                 <i class="fa-solid fa-plus"></i>
-            </button>
-
-            <div class="search-wrapper" style="max-width: 400px; padding: 6px 16px; border-radius: 10px; flex: 1;">
-                <input type="text" id="omni-input" class="main-input" style="font-size: 0.9rem;">
             </div>
         </div>
 
-        <div class="content-area" id="viewport">
-            <!-- Iframes injected here -->
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="nav-icons">
+                <div class="nav-btn" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i></div>
+                <div class="nav-btn" onclick="goForward()"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="nav-btn" onclick="reloadTab()"><i class="fa-solid fa-rotate-right"></i></div>
+            </div>
+            <div class="address-bar-container">
+                <i class="fa-solid fa-lock addr-icon"></i>
+                <input type="text" id="address-bar" class="address-bar" placeholder="Search or enter URL">
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-area" id="content-area">
+            <!-- Start Page (Only visible when no URL loaded) -->
+            <div class="start-page" id="start-page">
+                <div class="hero-logo">ELIXIR</div>
+                <div class="search-box-wrapper">
+                    <i class="fa-solid fa-magnifying-glass search-icon-main"></i>
+                    <input type="text" id="main-search" class="search-box" placeholder="Search with Elixir Intelligence...">
+                    <i class="fa-solid fa-microphone search-shortcut"></i>
+                </div>
+                <div class="quick-links">
+                    <div class="link-item" onclick="quickNav('google.com')">
+                        <div class="link-icon"><i class="fa-brands fa-google"></i></div>
+                        <span>Google</span>
+                    </div>
+                    <div class="link-item" onclick="quickNav('youtube.com')">
+                        <div class="link-icon"><i class="fa-brands fa-youtube"></i></div>
+                        <span>YouTube</span>
+                    </div>
+                    <div class="link-item" onclick="quickNav('discord.com')">
+                        <div class="link-icon"><i class="fa-brands fa-discord"></i></div>
+                        <span>Discord</span>
+                    </div>
+                    <div class="link-item" onclick="quickNav('github.com')">
+                        <div class="link-icon"><i class="fa-brands fa-github"></i></div>
+                        <span>GitHub</span>
+                    </div>
+                </div>
+            </div>
+            <!-- iFrames injected here -->
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        // 1. Initial Intro Animation
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const overlay = document.getElementById('intro-overlay');
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.style.visibility = 'hidden', 1000);
-            }, 2500);
-        });
-
-        // 2. Background Particles
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 60, density: { enable: true, value_area: 800 } },
-                color: { value: "#8b5cf6" },
-                shape: { type: "circle" },
-                opacity: { value: 0.2, random: true },
-                size: { value: 2, random: true },
-                line_linked: { enable: true, distance: 150, color: "#8b5cf6", opacity: 0.1, width: 1 },
-                move: { enable: true, speed: 1 }
-            }
-        });
-
-        // 3. Browser Engine
+        // --- 1. State Management ---
         let tabs = [];
         let activeTabId = null;
+        let tabIdCounter = 0;
 
-        const startPage = document.getElementById('start-page');
-        const browserUi = document.getElementById('browser-ui');
-        const searchInput = document.getElementById('search-input');
-        const omniInput = document.getElementById('omni-input');
-        const tabsContainer = document.getElementById('tabs-container');
-        const viewport = document.getElementById('viewport');
+        // --- 2. Initial Setup ---
+        window.onload = () => {
+            // Particle JS
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 60 },
+                    color: { value: '#8b5cf6' },
+                    opacity: { value: 0.2 },
+                    size: { value: 2 },
+                    line_linked: { enable: true, distance: 150, color: '#8b5cf6', opacity: 0.1, width: 1 },
+                    move: { speed: 1 }
+                }
+            });
 
-        function processInput(input) {
-            let val = input.trim();
-            if (!val) return null;
-            const isUrl = /^(https?:\/\/)?([\w.-]+)\.([a-z]{2,})(:\d{1,5})?(\/.*)?$/i.test(val) && !val.includes(' ');
-            return isUrl ? (val.startsWith('http') ? val : 'https://' + val) : `https://www.startpage.com/sp/search?query=${encodeURIComponent(val)}`;
-        }
+            // Hide Splash
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => splash.remove(), 800);
+            }, 2200);
 
-        // 404防止用のURL生成（現在のパスを考慮）
-        function getProxyUrl(target) {
-            const path = window.location.pathname;
-            const base = path.substring(0, path.lastIndexOf('/') + 1);
-            return `${base}embed#${encodeURIComponent(target)}`;
-        }
+            createNewTab();
+        };
 
-        function createNewTab(url = null) {
-            const id = 'tab-' + Date.now();
+        // --- 3. Core Functions ---
+
+        function createNewTab() {
+            const id = `tab-${tabIdCounter++}`;
+            const tabObj = {
+                id: id,
+                url: null,
+                title: 'New Tab',
+                frame: null
+            };
+
+            // Create Tab Element
             const tabEl = document.createElement('div');
             tabEl.className = 'tab';
-            tabEl.id = 'trigger-' + id;
+            tabEl.id = `el-${id}`;
             tabEl.innerHTML = `
-                <span class="tab-txt">New Tab</span>
-                <i class="fa-solid fa-xmark tab-close" onclick="closeTab(event, '${id}')"></i>
+                <div class="tab-title">${tabObj.title}</div>
+                <div class="tab-close" onclick="closeTab(event, '${id}')"><i class="fa-solid fa-xmark"></i></div>
             `;
             tabEl.onclick = () => switchTab(id);
-            tabsContainer.appendChild(tabEl);
-
-            const iframe = document.createElement('iframe');
-            iframe.id = 'frame-' + id;
-            viewport.appendChild(iframe);
-
-            const tabObj = { id, el: tabEl, frame: iframe, url: url };
-            tabs.push(tabObj);
-
-            if (url) {
-                iframe.src = getProxyUrl(url);
-                tabEl.querySelector('.tab-txt').textContent = url.split('/')[2] || url;
-            }
-
-            switchTab(id);
             
-            // 初めてのタブ作成時にUIを表示
-            startPage.classList.add('minimized');
-            browserUi.classList.add('active');
+            document.getElementById('tab-strip').insertBefore(tabEl, document.querySelector('.new-tab-btn'));
+
+            // Create iFrame
+            const iframe = document.createElement('iframe');
+            iframe.className = 'viewport-frame';
+            iframe.id = `iframe-${id}`;
+            document.getElementById('content-area').appendChild(iframe);
+            tabObj.frame = iframe;
+
+            tabs.push(tabObj);
+            switchTab(id);
         }
 
         function switchTab(id) {
             activeTabId = id;
-            tabs.forEach(t => {
-                const isActive = t.id === id;
-                t.el.classList.toggle('active', isActive);
-                t.frame.classList.toggle('active', isActive);
-                if (isActive) omniInput.value = t.url || '';
-            });
+            const currentTab = tabs.find(t => t.id === id);
+
+            // UI Classes
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(`el-${id}`).classList.add('active');
+
+            document.querySelectorAll('.viewport-frame').forEach(el => el.classList.remove('active'));
+            
+            const startPage = document.getElementById('start-page');
+            const addressBar = document.getElementById('address-bar');
+
+            if (currentTab.url) {
+                startPage.style.display = 'none';
+                currentTab.frame.classList.add('active');
+                addressBar.value = currentTab.url;
+            } else {
+                startPage.style.display = 'flex';
+                addressBar.value = '';
+            }
         }
 
-        function closeTab(e, id) {
-            e.stopPropagation();
-            const index = tabs.findIndex(t => t.id === id);
-            if (index === -1) return;
+        function closeTab(event, id) {
+            event.stopPropagation();
+            if (tabs.length === 1) return; // Don't close last tab
 
-            tabs[index].el.remove();
-            tabs[index].frame.remove();
+            const index = tabs.findIndex(t => t.id === id);
+            const tabObj = tabs[index];
+
+            tabObj.frame.remove();
+            document.getElementById(`el-${id}`).remove();
             tabs.splice(index, 1);
 
-            if (tabs.length === 0) {
-                goHome();
-            } else if (activeTabId === id) {
-                switchTab(tabs[Math.max(0, index - 1)].id);
+            if (activeTabId === id) {
+                const nextTab = tabs[index] || tabs[index - 1];
+                switchTab(nextTab.id);
             }
         }
 
-        function goHome() {
-            startPage.classList.remove('minimized');
-            browserUi.classList.remove('active');
-            tabs.forEach(t => { t.el.remove(); t.frame.remove(); });
-            tabs = [];
-            activeTabId = null;
-            searchInput.value = '';
-            searchInput.focus();
-        }
+        function navigate(input) {
+            if (!activeTabId || !input.trim()) return;
+            
+            let url = input.trim();
+            const isUrl = /^(https?:\/\/)?([\w.-]+)\.([a-z]{2,})(:\d{1,5})?(\/.*)?$/i.test(url) && !url.includes(' ');
 
-        // Input Handlers
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const url = processInput(searchInput.value);
-                if (url) createNewTab(url);
+            if (!isUrl) {
+                url = `https://www.startpage.com/sp/search?query=${encodeURIComponent(url)}`;
+            } else if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
             }
-        });
 
-        omniInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const url = processInput(omniInput.value);
-                const tab = tabs.find(t => t.id === activeTabId);
-                if (tab && url) {
-                    tab.url = url;
-                    tab.frame.src = getProxyUrl(url);
-                    tab.el.querySelector('.tab-txt').textContent = url.split('/')[2] || "Loading...";
-                }
+            const currentTab = tabs.find(t => t.id === activeTabId);
+            currentTab.url = url;
+            
+            // Generate Proxy Encoded URL (Placeholder for your UV or local Proxy)
+            // Example: currentTab.frame.src = __uv$config.prefix + __uv$config.encodeUrl(url);
+            currentTab.frame.src = url; // 直接埋め込み (実際はここでProxy URLに変換)
+
+            // Update Tab Title
+            try {
+                const domain = new URL(url).hostname.replace('www.', '');
+                document.querySelector(`#el-${activeTabId} .tab-title`).textContent = domain;
+            } catch {
+                document.querySelector(`#el-${activeTabId} .tab-title`).textContent = url;
             }
-        });
 
-        // Controls
-        function reload() {
-            const tab = tabs.find(t => t.id === activeTabId);
-            if (tab) tab.frame.src = tab.frame.src;
-        }
-        function back() {
-            const tab = tabs.find(t => t.id === activeTabId);
-            try { tab.frame.contentWindow.history.back(); } catch(e) {}
-        }
-        function forward() {
-            const tab = tabs.find(t => t.id === activeTabId);
-            try { tab.frame.contentWindow.history.forward(); } catch(e) {}
+            switchTab(activeTabId);
         }
 
-        // Focus start
-        setTimeout(() => searchInput.focus(), 3000);
+        // --- 4. Listeners ---
 
+        document.getElementById('address-bar').onkeydown = (e) => {
+            if (e.key === 'Enter') navigate(e.target.value);
+        };
+
+        document.getElementById('main-search').onkeydown = (e) => {
+            if (e.key === 'Enter') navigate(e.target.value);
+        };
+
+        function quickNav(target) {
+            navigate(target);
+        }
+
+        function reloadTab() {
+            const currentTab = tabs.find(t => t.id === activeTabId);
+            if (currentTab && currentTab.url) currentTab.frame.src = currentTab.frame.src;
+        }
+
+        function goBack() {
+            const currentTab = tabs.find(t => t.id === activeTabId);
+            if (currentTab) currentTab.frame.contentWindow.history.back();
+        }
+
+        function goForward() {
+            const currentTab = tabs.find(t => t.id === activeTabId);
+            if (currentTab) currentTab.frame.contentWindow.history.forward();
+        }
     </script>
 </body>
 </html>
