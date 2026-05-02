@@ -192,6 +192,79 @@
 
         const connection = new BareMux.BareMuxConnection("/prxy/baremux/worker.js");
 
+        // --- Wisp Server Fallback Logic ---
+        const wispServers = [
+            "wss://wisp.rhw.one/",                           // 優先度高め　高速
+            "wss://construction.services.codd70.ru/socket/", // 優先度普通　不安定
+            "wss://wisp.mercurywork.shop/",                  // 優先度低め　デモ用　低速
+            "wss://server.rubynetwork.co/wisp/",             // Ruby Network (安定)
+            "wss://tomp.app/wisp/"                           // Tomp (予備)
+        ];
+
+        let activeWispUrl = null;
+
+        // WebSocketで実際に接続できるかテストする関数
+        async function checkWispServer(url) {
+            return new Promise((resolve) => {
+                let resolved = false;
+                try {
+                    const ws = new WebSocket(url);
+                    
+                    // 3秒でタイムアウト判定
+                    const timeout = setTimeout(() => {
+                        if (!resolved) {
+                            resolved = true;
+                            ws.close();
+                            resolve(false);
+                        }
+                    }, 3000);
+
+                    // 接続成功
+                    ws.onopen = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            clearTimeout(timeout);
+                            ws.close();
+                            resolve(true);
+                        }
+                    };
+
+                    // 接続失敗
+                    ws.onerror = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            clearTimeout(timeout);
+                            ws.close();
+                            resolve(false);
+                        }
+                    };
+                } catch (e) {
+                    if (!resolved) {
+                        resolved = true;
+                        resolve(false);
+                    }
+                }
+            });
+        }
+
+        // 動作するWispサーバーを取得する関数
+        async function getAvailableWisp() {
+            // 既に動作確認済みのサーバーがあればそれを返す
+            if (activeWispUrl) return activeWispUrl;
+            
+            const statusText = document.getElementById('loading-status');
+            
+            for (const url of wispServers) {
+                if(statusText) statusText.textContent = `Testing Node: ${new URL(url).hostname}...`;
+                const isWorking = await checkWispServer(url);
+                if (isWorking) {
+                    activeWispUrl = url; // 成功したURLをキャッシュ
+                    return url;
+                }
+            }
+            throw new Error("No usable nodes are currently available. All connections failed.");
+        }
+
         function search(input, template = "https://html.duckduckgo.com/html?t=h_&q=%s") {
             try { return new URL(input).toString(); } catch (err) {}
             try {
@@ -204,7 +277,10 @@
         async function getUV(input) {
             await registerSW();
             let url = search(input);
-            let wispUrl = "wss://wisp.rhw.one/";
+            
+            // 死活監視付きのWisp URL取得を呼び出し
+            let wispUrl = await getAvailableWisp();
+            
             if ((await connection.getTransport()) !== "/prxy/epoxy/index.mjs") {
                 await connection.setTransport("/prxy/epoxy/index.mjs", [{ wisp: wispUrl }]);
             }
@@ -241,7 +317,7 @@
             if (!isValidUrl(url)) return showError(`Invalid destination: ${url}`);
 
             try {
-                statusText.textContent = "Infusing Elixir Proxy...";
+                statusText.textContent = "Locating optimal node...";
                 const proxiedUrl = await getUV(url);
                 
                 statusText.textContent = "Flowing to destination...";
