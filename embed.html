@@ -175,7 +175,7 @@
         import { registerSW } from "/prxy/register-sw.mjs";
         import * as BareMux from "/prxy/baremux/index.mjs";
 
-        // Particles.js Initialization (Instant)
+        // Particles.js Initialization
         particlesJS('particles-js', {
             particles: {
                 number: { value: 60, density: { enable: true, value_area: 800 } },
@@ -192,79 +192,76 @@
 
         const connection = new BareMux.BareMuxConnection("/prxy/baremux/worker.js");
 
-        // --- Wisp Server Fallback Logic ---
+        // --- 究極のWispサーバーリスト ---
         const wispServers = [
-            "wss://wisp.rhw.one/",     
+            "wss://wisp.rhw.one/",
             "wss://wisp.webmc.fun/",
-            "wss://server.rubynetwork.co/wisp/",  
-            "wss://anura.pro/",
-            "wss://wisp.mercurywork.shop/",    
-            "wss://construction.services.codd70.ru/socket/",            
-            "wss://tomp.app/wisp/"
+            "wss://server.rubynetwork.co/wisp/",
+            "wss://wisp.mercurywork.shop/",
+            "wss://tomp.app/wisp/",
+            "wss://anura.mercurywork.shop/wisp/",
+            "wss://wisp.z1g.icu/",
+            "wss://wisp.hypertabs.org/",
+            "wss://wisp.cohenerickson.com/",
+            "wss://wisp.m9.is/",
+            "wss://wisp.tiar.app/",
+            "wss://ws.m0re.net/wisp/",
+            "wss://wisp.flow-works.me/",
+            "wss://wisp.pydust.cloud/",
+            "wss://wisp.extramath.xyz/",
+            "wss://wisp.shuttleai.app/",
+            "wss://wisp.phantom-network.com/",
+            "wss://construction.services.codd70.ru/socket/"
         ];
 
         let activeWispUrl = null;
 
-        // WebSocketで実際に接続できるかテストする関数
-        async function checkWispServer(url) {
-            return new Promise((resolve) => {
-                let resolved = false;
-                try {
-                    const ws = new WebSocket(url);
-                    
-                    // 3秒でタイムアウト判定
-                    const timeout = setTimeout(() => {
-                        if (!resolved) {
-                            resolved = true;
-                            ws.close();
-                            resolve(false);
-                        }
-                    }, 3000);
-
-                    // 接続成功
-                    ws.onopen = () => {
-                        if (!resolved) {
-                            resolved = true;
-                            clearTimeout(timeout);
-                            ws.close();
-                            resolve(true);
-                        }
-                    };
-
-                    // 接続失敗
-                    ws.onerror = () => {
-                        if (!resolved) {
-                            resolved = true;
-                            clearTimeout(timeout);
-                            ws.close();
-                            resolve(false);
-                        }
-                    };
-                } catch (e) {
-                    if (!resolved) {
-                        resolved = true;
-                        resolve(false);
+        // 指定されたサーバーに対して接続テストを行い、成功すればURLを返し、失敗/タイムアウトすればRejectする
+        async function raceWisp(url) {
+            return new Promise((resolve, reject) => {
+                let socketClosed = false;
+                const socket = new WebSocket(url);
+                
+                // 2.5秒でタイムアウト（並列実行なので短めに設定して高速化）
+                const timeout = setTimeout(() => {
+                    if (!socketClosed) {
+                        socketClosed = true;
+                        socket.close();
+                        reject(new Error("Timeout"));
                     }
-                }
+                }, 2500);
+
+                socket.onopen = () => {
+                    socketClosed = true;
+                    clearTimeout(timeout);
+                    socket.close();
+                    resolve(url); // 接続成功、URLを返す
+                };
+
+                socket.onerror = () => {
+                    socketClosed = true;
+                    clearTimeout(timeout);
+                    reject(new Error("Connection Failed"));
+                };
             });
         }
 
-        // 動作するWispサーバーを取得する関数
-        async function getAvailableWisp() {
-            // 既に動作確認済みのサーバーがあればそれを返す
+        // Promise.anyを使用して最も速いサーバーを選択するロジック
+        async function getFastestWisp() {
             if (activeWispUrl) return activeWispUrl;
-            
-            const statusText = document.getElementById('loading-status');
-            
-            for (const url of wispServers) {
-                if(statusText) statusText.textContent = `Testing Node: ${new URL(url).hostname}...`;
-                const isWorking = await checkWispServer(url);
-                if (isWorking) {
-                    activeWispUrl = url; // 成功したURLをキャッシュ
-                    return url;
-                }
+
+            // すべてのサーバーに対して同時に接続を試行
+            const trials = wispServers.map(url => raceWisp(url));
+
+            try {
+                // 最も早くresolveされた（接続できた）URLを取得
+                activeWispUrl = await Promise.any(trials);
+                console.log(`ELIXIR: Node selected -> ${activeWispUrl}`);
+                return activeWispUrl;
+            } catch (aggregateError) {
+                // すべてのサーバーが失敗した場合
+                throw new Error("All Elixir nodes are unreachable. Please try again later.");
             }
-            throw new Error("No usable nodes are currently available. All connections failed.");
         }
 
         function search(input, template = "https://html.duckduckgo.com/html?t=h_&q=%s") {
@@ -280,8 +277,8 @@
             await registerSW();
             let url = search(input);
             
-            // 死活監視付きのWisp URL取得を呼び出し
-            let wispUrl = await getAvailableWisp();
+            // 最速のWispを並列で取得
+            let wispUrl = await getFastestWisp();
             
             if ((await connection.getTransport()) !== "/prxy/epoxy/index.mjs") {
                 await connection.setTransport("/prxy/epoxy/index.mjs", [{ wisp: wispUrl }]);
@@ -319,10 +316,10 @@
             if (!isValidUrl(url)) return showError(`Invalid destination: ${url}`);
 
             try {
-                statusText.textContent = "Locating optimal node...";
+                statusText.textContent = "Racing across Global Nodes...";
                 const proxiedUrl = await getUV(url);
                 
-                statusText.textContent = "Flowing to destination...";
+                statusText.textContent = "Flowing through optimized node...";
                 iframe.onload = () => {
                     loadingContainer.style.display = 'none';
                     iframe.style.display = 'block';
@@ -336,15 +333,12 @@
             }
         }
 
-        // --- Optimization: Remove unnecessary delays ---
         window.addEventListener('hashchange', embedUrl);
 
-        // Immediate Execution Logic
         const init = () => {
             if (typeof __uv$config !== 'undefined') {
                 embedUrl();
             } else {
-                // If config is slow, poll aggressively (every 10ms) but only until loaded
                 const check = setInterval(() => {
                     if (typeof __uv$config !== 'undefined') {
                         clearInterval(check);
